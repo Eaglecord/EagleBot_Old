@@ -46,9 +46,6 @@ namespace EagleThreadBot
 
 			// Create cache on startup
 			await UpdateLocalCache();
-
-			// Start cache timer
-			StartTimer();
 			
 			Slashies = Client.UseSlashCommands();
 
@@ -63,31 +60,14 @@ namespace EagleThreadBot
 			await Task.Delay(-1);
 		}
 
-        private static void StartTimer()
-        {
-			// Get the cache interval from config (15+ minute cycles)
-			Int32 timerInterval = 15;
-			if (Configuration.UpdateCache < timerInterval)
-				timerInterval = 15 * 60 * 1000;
-			else
-				timerInterval = Configuration.UpdateCache * 60 * 1000;
-
-			// Update cache each cycle
-			timer.Elapsed += Timer_Elapsed;
-			timer.Interval = timerInterval;
-			timer.AutoReset = true;
-			timer.Enabled = true;
-			timer.Start();
-		}
-
-        private static async void Timer_Elapsed(object sender, ElapsedEventArgs e)
-        {
+		private static async void Timer_Elapsed(object sender, ElapsedEventArgs e)
+		{
 			// Update cache
 			await UpdateLocalCache();
-        }
+		}
 
-        private static async Task UpdateLocalCache()
-        {
+		private static async Task UpdateLocalCache()
+		{
 			
 			if (File.Exists("./cache/index.json")
 				&& File.GetLastWriteTimeUtc("./cache/index.json") 
@@ -99,14 +79,14 @@ namespace EagleThreadBot
 			if (!File.Exists("./cache/index.json"))
 				File.Create("./cache/index.json");
 			
-			String index = await httpClient.GetStringAsync($"{Program.Configuration.TagUrl}index.json");
+			String index = await HttpClient.GetStringAsync($"{Program.Configuration.TagUrl}index.json");
 
 			// Store the index.json in cache
 			File.WriteAllText("./cache/index.json", index);
 			Client.Logger.LogInformation(new EventId(10, "Cache"), "Cache updated");
 		}
 
-        private async static Task Slashies_SlashCommandErrored(SlashCommandsExtension sender, SlashCommandErrorEventArgs e)
+		private async static Task Slashies_SlashCommandErrored(SlashCommandsExtension sender, SlashCommandErrorEventArgs e)
 		{
 			await e.Context.FollowUpAsync(new()
 			{
@@ -115,14 +95,6 @@ namespace EagleThreadBot
 			});
 
 			Console.WriteLine($"{e.Exception}: {e.Exception.Message}\n{e.Exception.StackTrace}");
-		}
-		public static TagIndex GetTagList()
-        {
-			// Get the tag list from cache
-			StreamReader sr = new("./cache/index.json");
-			TagList = JsonConvert.DeserializeObject<TagIndex>(sr.ReadToEnd());
-			sr.Close();
-			return TagList;
 		}
 	}
 }

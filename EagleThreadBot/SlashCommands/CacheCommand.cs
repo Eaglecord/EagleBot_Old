@@ -23,7 +23,7 @@ namespace EagleThreadBot.SlashCommands
             if (!File.Exists("./cache/index.json"))
                 File.Create("./cache/index.json");
 
-            String index = await Program.httpClient.GetStringAsync($"{Program.Configuration.TagUrl}index.json");
+            String index = await Program.HttpClient.GetStringAsync($"{Program.Configuration.TagUrl}index.json");
 
             // Force refresh the cache
             File.WriteAllText("./cache/index.json", index);

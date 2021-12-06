@@ -9,23 +9,24 @@ using EagleThreadBot.Common;
 
 namespace EagleThreadBot.SlashCommands
 {
-	[SlashModuleLifespan(SlashModuleLifespan.Singleton)]
 	public class TagCommand : ApplicationCommandModule
 	{
 		[SlashCommand("tag", "Fetches a tag from meta and posts it.")]
-		public async Task Tag(InteractionContext ctx, 
+		public async Task Tag(InteractionContext ctx,
 			[Option("TagId", "Tag ID as found on the eaglecord meta repository.")]
 			String tag)
 		{
+			await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource, new());
+
 			// Get the tag list from cache
-			TagIndex TagList = Program.GetTagList();
+			TagIndex TagList = Program.TagList;
 
 			String url = "";
 			try
 			{
-				for (UInt32 i = 0; i < TagList.index.Length; i++)
+				for(UInt32 i = 0; i < TagList.index.Length; i++)
 				{
-					if (TagList.index[i].identifier == tag
+					if(TagList.index[i].identifier == tag
 						|| TagList.index[i].aliases.Contains(tag))
 					{
 						url = TagList.index[i].url;
@@ -42,8 +43,8 @@ namespace EagleThreadBot.SlashCommands
 				});
 				return;
 			}
-			if (url == "")
-            {
+			if(url == "")
+			{
 				await ctx.FollowUpAsync(new()
 				{
 					Content = $"Could not fetch url for {tag}. Try again.",
@@ -51,7 +52,11 @@ namespace EagleThreadBot.SlashCommands
 				});
 				return;
 			}
-            await ctx.CreateResponseAsync(content: await Program.httpClient.GetStringAsync($"{Program.Configuration.TagUrl}{url}"));
+			await ctx.EditResponseAsync(
+				new()
+				{
+					Content = await Program.HttpClient.GetStringAsync($"{Program.Configuration.TagUrl}{url}")
+				});
 		}
 	}
 }
